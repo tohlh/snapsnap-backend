@@ -20,7 +20,10 @@ export class QrController {
     try {
       const user = req.user;
       const { type, content } = req.body;
-      return await this.qrService.scanQr(type, content, user);
+      const id = await this.qrService.scanQr(type, content, user);
+      const qr = await this.qrService.getQrDetails(id);
+      const risk = await this.qrService.getRiskFactor(id);
+      return { id: qr.id, type: qr.type, content: qr.content, risk };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -31,15 +34,22 @@ export class QrController {
   async getQrHistory(@Request() req) {
     try {
       const user = req.user;
-      return await this.qrService.getQrHistory(user);
+      const history = await this.qrService.getQrHistory(user);
+      return { history };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/risk_factor/:id')
-  async getRiskFactor(@Param() params: any) {
-    return await this.qrService.getRiskFactor(params.id);
+  @Get('/details/:id')
+  async getQrDetails(@Param() params: any) {
+    try {
+      const qr = await this.qrService.getQrDetails(params.id);
+      const risk = await this.qrService.getRiskFactor(params.id);
+      return { id: qr.id, type: qr.type, content: qr.content, risk };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }

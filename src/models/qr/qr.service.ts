@@ -4,16 +4,17 @@ import { Repository, UpdateResult } from 'typeorm';
 import { QrEntity } from './entities/qr.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { ScanEntity } from './entities/scan.entity';
+import { ReportEntity } from '../report/entities/report.entity';
 
 @Injectable()
 export class QrService {
   constructor(
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
     @InjectRepository(QrEntity)
     private qrRepository: Repository<QrEntity>,
     @InjectRepository(ScanEntity)
     private scanRepository: Repository<ScanEntity>,
+    @InjectRepository(ReportEntity)
+    private reportRepository: Repository<ReportEntity>,
   ) {}
 
   findAll(): Promise<QrEntity[]> {
@@ -61,7 +62,6 @@ export class QrService {
   }
 
   async getQrHistory(user: UserEntity) {
-    // list the qr codes that the user has scanned
     const scans = await this.scanRepository.find({
       relations: ['qr'],
       where: { user: { id: user.id } },
@@ -76,11 +76,30 @@ export class QrService {
     return qrCodes;
   }
 
-  async getRiskFactor(id: number) {
-    const qr = await this.findOne(id);
+  async getQrDetails(id: number) {
+    const qr = await this.findOne({ where: { id } });
     if (qr) {
-      const scanCount = qr.scans.length;
-      const reportCount = qr.reports.length;
+      return { id: qr.id, type: qr.type, content: qr.content };
+    }
+    throw new Error('QR code not found');
+  }
+
+  async getRiskFactor(id: number) {
+    const qr = await this.findOne({ where: { id } });
+    if (qr) {
+      const scanCount = await this.scanRepository
+        .find({
+          relations: ['qr'],
+          where: { qr: { id } },
+        })
+        .then((res) => res.length);
+      const reportCount = await this.reportRepository
+        .find({
+          relations: ['qr'],
+          where: { qr: { id } },
+        })
+        .then((res) => res.length);
+
       return reportCount / scanCount;
     }
     return 0;
