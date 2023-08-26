@@ -1,6 +1,12 @@
 import { UserEntity } from 'src/models/user/entities/user.entity';
 import { QrEntity } from 'src/models/qr/entities/qr.entity';
-import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+} from 'typeorm';
 
 @Entity('Report')
 export class ReportEntity {
@@ -8,9 +14,11 @@ export class ReportEntity {
   id: number;
 
   @ManyToOne(() => UserEntity, (user) => user.reports, { nullable: false })
+  @JoinColumn()
   user: UserEntity;
 
   @ManyToOne(() => QrEntity, (qr) => qr.reports, { nullable: false })
+  @JoinColumn()
   qr: QrEntity;
 
   @Column({ nullable: false })

@@ -15,10 +15,14 @@ export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post()
-  async create(@Request() req) {
+  @Post(':id')
+  async create(@Param() params: any, @Request() req) {
     try {
-      return await this.reportService.create(req);
+      const user = req.user;
+      const { type, reason } = req.body;
+      const qr = await this.reportService.getQr(params.id);
+      await this.reportService.createReport(user, type, reason, qr);
+      return { message: 'Report created successfully' };
     } catch (err) {
       throw new BadRequestException(err.message);
     }
