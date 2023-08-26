@@ -26,7 +26,4 @@ export class UserEntity {
     type: 'timestamp',
   })
   updatedAt?: Date;
-
-  @Column({ nullable: true })
-  publicKey: string;
 }
