@@ -8,6 +8,8 @@ import { ScanEntity } from './entities/scan.entity';
 @Injectable()
 export class QrService {
   constructor(
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
     @InjectRepository(QrEntity)
     private qrRepository: Repository<QrEntity>,
     @InjectRepository(ScanEntity)
@@ -46,14 +48,31 @@ export class QrService {
     return await this.qrRepository.delete(id);
   }
 
-  async addQr(type: number, content: string, user: UserEntity) {
-    return await this.create({ type, content, user });
+  async scanQr(type: number, content: string, user: UserEntity) {
+    const qr = await this.findOne({ where: { content, type } });
+    if (qr) {
+      await this.scanRepository.save({ qr, user });
+      return qr.id;
+    } else {
+      const newQr = await this.create({ type, content, user });
+      await this.scanRepository.save({ qr: newQr, user });
+      return newQr.id;
+    }
   }
 
   async getQrHistory(user: UserEntity) {
     // list the qr codes that the user has scanned
-    const scans = await this.scanRepository.find({ where: { user } });
-    const qrCodes = scans.map((scan) => scan.qr);
+    const scans = await this.scanRepository.find({
+      relations: ['qr'],
+      where: { user: { id: user.id } },
+    });
+    const qrCodes = scans.map((scan) =>
+      Object({
+        id: scan.qr.id,
+        type: scan.qr.type,
+        content: scan.qr.content,
+      }),
+    );
     return qrCodes;
   }
 

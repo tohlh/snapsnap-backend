@@ -15,12 +15,12 @@ export class QrController {
   constructor(private readonly qrService: QrService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post('/add')
-  async addQr(@Request() req) {
+  @Post('/scan')
+  async scanQr(@Request() req) {
     try {
       const user = req.user;
       const { type, content } = req.body;
-      return await this.qrService.addQr(type, content, user);
+      return await this.qrService.scanQr(type, content, user);
     } catch (error) {
       throw new BadRequestException(error.message);
     }

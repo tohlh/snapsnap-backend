@@ -1,5 +1,11 @@
 import { UserEntity } from 'src/models/user/entities/user.entity';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { QrEntity } from './qr.entity';
 
 @Entity('Scan')
@@ -8,9 +14,11 @@ export class ScanEntity {
   id: number;
 
   @ManyToOne(() => UserEntity, (user) => user.scans, { nullable: false })
+  @JoinColumn()
   user: UserEntity;
 
   @ManyToOne(() => QrEntity, (qr) => qr.scans, { nullable: false })
+  @JoinColumn()
   qr: QrEntity;
 
   @Column({
