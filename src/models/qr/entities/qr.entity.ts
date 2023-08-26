@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { ReportEntity } from 'src/models/report/entities/report.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { ScanEntity } from './scan.entity';
 
 @Entity('Qr')
 export class QrEntity {
@@ -10,6 +12,12 @@ export class QrEntity {
 
   @Column({ nullable: false })
   content: string;
+
+  @OneToMany(() => ScanEntity, (scan) => scan.qr, { nullable: false })
+  scans: ScanEntity[];
+
+  @OneToMany(() => ReportEntity, (report) => report.qr, { nullable: true })
+  reports: ReportEntity[];
 
   @Column({
     default: () => 'CURRENT_TIMESTAMP(6)',

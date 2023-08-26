@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 import { QrEntity } from './entities/qr.entity';
+import { UserEntity } from '../user/entities/user.entity';
+import { ScanEntity } from './entities/scan.entity';
 
 @Injectable()
 export class QrService {
   constructor(
     @InjectRepository(QrEntity)
     private qrRepository: Repository<QrEntity>,
+    @InjectRepository(ScanEntity)
+    private scanRepository: Repository<ScanEntity>,
   ) {}
 
   findAll(): Promise<QrEntity[]> {
@@ -40,5 +44,26 @@ export class QrService {
 
   async remove(id: number) {
     return await this.qrRepository.delete(id);
+  }
+
+  async addQr(type: number, content: string, user: UserEntity) {
+    return await this.create({ type, content, user });
+  }
+
+  async getQrHistory(user: UserEntity) {
+    // list the qr codes that the user has scanned
+    const scans = await this.scanRepository.find({ where: { user } });
+    const qrCodes = scans.map((scan) => scan.qr);
+    return qrCodes;
+  }
+
+  async getRiskFactor(id: number) {
+    const qr = await this.findOne(id);
+    if (qr) {
+      const scanCount = qr.scans.length;
+      const reportCount = qr.reports.length;
+      return reportCount / scanCount;
+    }
+    return 0;
   }
 }

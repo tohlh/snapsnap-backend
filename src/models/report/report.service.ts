@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
+import { UserEntity } from '../user/entities/user.entity';
 import { ReportEntity } from './entities/report.entity';
 
 @Injectable()
@@ -16,10 +17,6 @@ export class ReportService {
 
   async findOne(data: number | any): Promise<ReportEntity | undefined> {
     return await this.reportRepository.findOne(data);
-  }
-
-  async findOneByContent(content: string): Promise<ReportEntity | undefined> {
-    return this.findOne({ where: { content } });
   }
 
   async create(data) {
@@ -40,5 +37,13 @@ export class ReportService {
 
   async remove(id: number) {
     return await this.reportRepository.delete(id);
+  }
+
+  async getReports(user: UserEntity) {
+    return await this.reportRepository.find({ where: { user } });
+  }
+
+  async getReport(user: UserEntity, id: number) {
+    return await this.reportRepository.findOne({ where: { user, id } });
   }
 }

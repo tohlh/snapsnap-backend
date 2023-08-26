@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { ReportEntity } from 'src/models/report/entities/report.entity';
+import { ScanEntity } from 'src/models/qr/entities/scan.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('User')
 export class UserEntity {
@@ -26,4 +28,10 @@ export class UserEntity {
     type: 'timestamp',
   })
   updatedAt?: Date;
+
+  @OneToMany(() => ReportEntity, (report) => report.user)
+  reports: ReportEntity[];
+
+  @OneToMany(() => ScanEntity, (scan) => scan.user)
+  scans: ScanEntity[];
 }
