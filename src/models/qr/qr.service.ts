@@ -15,7 +15,7 @@ export class QrService {
     private scanRepository: Repository<ScanEntity>,
     @InjectRepository(ReportEntity)
     private reportRepository: Repository<ReportEntity>,
-  ) {}
+  ) { }
 
   findAll(): Promise<QrEntity[]> {
     return this.qrRepository.find();
@@ -65,12 +65,16 @@ export class QrService {
     const scans = await this.scanRepository.find({
       relations: ['qr'],
       where: { user: { id: user.id } },
+      order: {
+        createdAt: 'DESC',
+      },
     });
     const qrCodes = scans.map((scan) =>
       Object({
         id: scan.qr.id,
         type: scan.qr.type,
         content: scan.qr.content,
+        createdAt: scan.qr.createdAt,
       }),
     );
     return qrCodes;
@@ -79,7 +83,12 @@ export class QrService {
   async getQrDetails(id: number) {
     const qr = await this.findOne({ where: { id } });
     if (qr) {
-      return { id: qr.id, type: qr.type, content: qr.content };
+      return {
+        id: qr.id,
+        type: qr.type,
+        content: qr.content,
+        createdAt: qr.createdAt,
+      };
     }
     throw new Error('QR code not found');
   }
@@ -88,11 +97,12 @@ export class QrService {
     const qr = await this.findOne({ where: { id } });
     if (qr) {
       const scanCount = await this.scanRepository
-        .find({
-          relations: ['qr'],
-          where: { qr: { id } },
-        })
-        .then((res) => res.length);
+        .createQueryBuilder('scan')
+        .select('COUNT(DISTINCT scan.user)', 'distinctUserCount')
+        .innerJoin('scan.qr', 'qr')
+        .where('qr.id = :id', { id })
+        .getRawOne();
+
       const reportCount = await this.reportRepository
         .find({
           relations: ['qr'],
@@ -100,7 +110,7 @@ export class QrService {
         })
         .then((res) => res.length);
 
-      return reportCount / scanCount;
+      return reportCount / scanCount['distinctUserCount'];
     }
     return 0;
   }

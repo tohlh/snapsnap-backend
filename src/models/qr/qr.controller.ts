@@ -47,7 +47,13 @@ export class QrController {
     try {
       const qr = await this.qrService.getQrDetails(params.id);
       const risk = await this.qrService.getRiskFactor(params.id);
-      return { id: qr.id, type: qr.type, content: qr.content, risk };
+      return {
+        id: qr.id,
+        type: qr.type,
+        content: qr.content,
+        createdAt: qr.createdAt,
+        risk,
+      };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
